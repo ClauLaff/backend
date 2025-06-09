@@ -1,4 +1,4 @@
-import http, { createServer } from 'http';
+import http from 'http';
 import app from './app.js';
 
 function normalizePort(val) {

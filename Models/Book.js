@@ -1,6 +1,6 @@
-import { Schema, model } from 'mongoose';
+import mongoose from 'mongoose';
 
-const bookSchema = Schema({
+const bookSchema = new mongoose.Schema({
     userId : {type:String, required:true},
     title : {type:String, required: true},
     author : {type:String, required: true},
@@ -11,4 +11,6 @@ const bookSchema = Schema({
     averageRating : {type:Number, required: true}
 });
 
-export default model('Book', bookSchema);
+const Book = mongoose.model('Book', bookSchema);
+
+export default Book
