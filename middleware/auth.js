@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
+const jwt = require('jsonwebtoken')
 
-export const auth = (req, res, next) => {
+const auth = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
         const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
@@ -14,4 +14,4 @@ export const auth = (req, res, next) => {
     }
 }
 
-export default auth
+module.export = auth
