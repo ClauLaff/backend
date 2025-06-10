@@ -1,7 +1,7 @@
 const express = require ('express')
 const mongoose = require('mongoose')
-const booksRoutes = require('./routes/books.js')
-const usersRoutes = require('./routes/users.js')
+const booksRouter = require('./routes/books.js')
+const usersRouter = require('./routes/users.js')
 const path = require('path')
 const cors = require('cors')
 
@@ -15,9 +15,9 @@ app.use(express.json());
 
 app.use(cors());
 
-app.use('api/books', booksRoutes);
+app.use('/api/books', booksRouter);
 
-app.use('api/auth', usersRoutes);
+app.use('/api/auth', usersRouter);
 
 app.use(('/images', express.static(path.join(__dirname,'images'))));
 
