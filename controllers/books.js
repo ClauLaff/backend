@@ -2,6 +2,7 @@ const Book = require ('../models/book.js')
 const fs = require('fs')
 
 exports.addBook = (req, res, next) => {
+  console.log('Requête add book!')
   const bookObject = JSON.parse(req.body.book);
   delete bookObject._id;
   delete bookObject._userId;
@@ -16,6 +17,7 @@ exports.addBook = (req, res, next) => {
 }
 
 exports.updateBook = (req, res, next) => {
+  console.log ('Requête update book!')
   const bookObject = req.file?{
     ... JSON.parse(req.body.book),
     imageUrl: `${req.protocol}://${req.get(`host`)}/images/${req.file.filename}`
@@ -36,6 +38,7 @@ exports.updateBook = (req, res, next) => {
 }
 
 exports.deleteBook = (req, res, next) => {
+  console.log('Requête delete book!')
   Book.findOne({_id : req.params.id})
   .then((book) => {
     if (book.userId != req.auth.userId){
@@ -52,16 +55,45 @@ exports.deleteBook = (req, res, next) => {
   .catch((error) => {res.status(500).json({error})})
 }
 
-exports.getBook = (req, res, next) => {
-  console.log('Requête recue!');
+exports.rateBook = (req, res, next) => {
+  console.log('Requête rate book!');
   Book.findOne({_id:req.params.id})
-  .then((book) =>{res.status(200).json({book})})
+  .then ((book) => {
+    const rating = book.ratings.find((rating)=>rating.userId === req.auth.userId)
+    if (rating){
+      console.log(rating);
+      return res.status(401).json({message : 'Vous avez déjà noté ce livre'});
+    }else{
+      console.log(rating);
+      book.ratings.push(
+        {
+          userId : req.auth.userId,
+          grade : req.params.rating
+        }
+      )
+      return book.save()
+      .then(() => res.status(200).json({message: 'Évaluation ajoutée'}))
+      .catch(error => res.status(500).json({error}));
+    }
+  })
+  .catch((error) => {res.status(500).json({error})});
+}
+
+exports.getBook = (req, res, next) => {
+  console.log('Requête get book!');
+  Book.findOne({_id:req.params.id})
+  .then((book) =>{res.status(200).json(book)})
   .catch((error) => {res.status(404).json({error})});
 }
 
 exports.getBooks = (req, res, next) => {
-  console.log ('Requête reçue!');
+  console.log ('Requête get books!');
   Book.find()
-  .then((books) => {res.status(200).json({books})})
-  .catch((error) => {res.status(400).json({error})});
+  .then((books) => {
+    console.log(books)
+    res.status(200).json(books)
+  })
+  .catch((error) => {
+    console.log('erreur lors de la récupération des livres');
+    res.status(500).json({error})});
 }
