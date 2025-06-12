@@ -2,7 +2,6 @@ const Book = require ('../models/book.js')
 const fs = require('fs')
 
 exports.addBook = (req, res, next) => {
-  console.log('Requête add book!')
   const bookObject = JSON.parse(req.body.book);
   delete bookObject._id;
   delete bookObject._userId;
@@ -17,7 +16,6 @@ exports.addBook = (req, res, next) => {
 }
 
 exports.updateBook = (req, res, next) => {
-  console.log ('Requête update book!')
   const bookObject = req.file?{
     ... JSON.parse(req.body.book),
     imageUrl: `${req.protocol}://${req.get(`host`)}/images/${req.file.filename}`
@@ -38,7 +36,6 @@ exports.updateBook = (req, res, next) => {
 }
 
 exports.deleteBook = (req, res, next) => {
-  console.log('Requête delete book!')
   Book.findOne({_id : req.params.id})
   .then((book) => {
     if (book.userId != req.auth.userId){
@@ -56,21 +53,22 @@ exports.deleteBook = (req, res, next) => {
 }
 
 exports.rateBook = (req, res, next) => {
-  console.log('Requête rate book!');
   Book.findOne({_id:req.params.id})
   .then ((book) => {
-    const rating = book.ratings.find((rating)=>rating.userId === req.auth.userId)
+    const rating = book.ratings.find((rating)=>rating.userId === req.auth.userId);
     if (rating){
-      console.log(rating);
       return res.status(401).json({message : 'Vous avez déjà noté ce livre'});
     }else{
-      console.log(rating);
-      book.ratings.push(
-        {
+      const newRating = {
           userId : req.auth.userId,
-          grade : req.params.rating
+          grade : req.body.rating
         }
-      )
+      book.ratings.push(newRating)
+      /**Mise à jour de la moyenne */
+      let sum = 0;
+      book.ratings.forEach ((rating)=>{sum = sum + parseInt(rating.grade)});
+      const average = Math.round(sum/(book.ratings.length));
+      book.averageRating = average;
       return book.save()
       .then(() => res.status(200).json({message: 'Évaluation ajoutée'}))
       .catch(error => res.status(500).json({error}));
