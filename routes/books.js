@@ -12,10 +12,9 @@ router.put('/:id', auth, multer, booksCtrl.updateBook)
 
 router.delete('/:id', auth, booksCtrl.deleteBook)
 
-
-
 router.get('/:id', booksCtrl.getBook)
 
 router.get('/', booksCtrl.getBooks)
+
 
 module.exports = router

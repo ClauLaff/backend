@@ -1,3 +1,4 @@
+const book = require('../models/book.js');
 const Book = require ('../models/book.js')
 const fs = require('fs')
 
@@ -78,20 +79,18 @@ exports.rateBook = (req, res, next) => {
 }
 
 exports.getBook = (req, res, next) => {
-  console.log('Requête get book!');
   Book.findOne({_id:req.params.id})
   .then((book) =>{res.status(200).json(book)})
   .catch((error) => {res.status(404).json({error})});
 }
 
 exports.getBooks = (req, res, next) => {
-  console.log ('Requête get books!');
   Book.find()
   .then((books) => {
-    console.log(books)
     res.status(200).json(books)
   })
   .catch((error) => {
     console.log('erreur lors de la récupération des livres');
     res.status(500).json({error})});
 }
+
