@@ -68,7 +68,7 @@ exports.rateBook = (req, res, next) => {
       /**Mise à jour de la moyenne */
       let sum = 0;
       book.ratings.forEach ((rating)=>{sum = sum + parseInt(rating.grade)});
-      const average = Math.round(sum/(book.ratings.length));
+      const average = sum/(book.ratings.length);
       book.averageRating = average;
       return book.save()
       .then(() => res.status(200).json({message: 'Évaluation ajoutée'}))
@@ -76,6 +76,14 @@ exports.rateBook = (req, res, next) => {
     }
   })
   .catch((error) => {res.status(500).json({error})});
+}
+exports.getBestRatedBooks= (req, res, next) =>{
+  Book.find()
+  .then ((books)=>{
+    const sortedBooks = books.sort((b1, b2) => b2.averageRating - b1.averageRating);
+    res.status(200).json(sortedBooks.slice(0,3));
+  })
+  .catch((error)=>{res.status(500).json({error})});
 }
 
 exports.getBook = (req, res, next) => {
@@ -90,7 +98,6 @@ exports.getBooks = (req, res, next) => {
     res.status(200).json(books)
   })
   .catch((error) => {
-    console.log('erreur lors de la récupération des livres');
     res.status(500).json({error})});
 }
 

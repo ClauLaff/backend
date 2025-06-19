@@ -12,6 +12,8 @@ router.put('/:id', auth, multer, booksCtrl.updateBook)
 
 router.delete('/:id', auth, booksCtrl.deleteBook)
 
+router.get('/bestrating', booksCtrl.getBestRatedBooks)
+
 router.get('/:id', booksCtrl.getBook)
 
 router.get('/', booksCtrl.getBooks)
