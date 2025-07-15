@@ -3,10 +3,11 @@ const mongoose = require('mongoose')
 const booksRouter = require('./routes/books.js')
 const usersRouter = require('./routes/users.js')
 const path = require('path')
+require('dotenv').config()
 
 const app = express();
 
-mongoose.connect('mongodb+srv://CL:OCProject@clusteroc.mht5l1u.mongodb.net/?retryWrites=true&w=majority&appName=ClusterOC')
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
