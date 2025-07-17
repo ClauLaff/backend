@@ -16,7 +16,7 @@ if(!req.body.book || !req.file){
   const bookDataValidationMessage = bookDataValidation(bookObject);
   if (bookDataValidationMessage){
     removeFile(fileName);
-    return res.status(400).json({message : {bookDataValidationMessage}});
+    return res.status(400).json({message : bookDataValidationMessage});
   }
   /**Reformatage de l'image */
   const formatedImageName = await formatImage(imagePath, fileName);
@@ -45,15 +45,15 @@ exports.updateBook = async (req, res) => {
       res.status(401).json({message : 'Non autorisé'})
     } else {
       const previousImageName = book.imageUrl.split('/images/')[1];
-      const fileName = req.file.filename;
-      const imagePath = req.file.path;
       let bookObject = null;
       if (req.file){
+        const fileName = req.file.filename;
+        const imagePath = req.file.path;
         bookObject = JSON.parse(req.body.book);
         const bookDataValidationMessage = bookDataValidation(bookObject);
         if(bookDataValidationMessage){
-          removeFile(req.file.filename)
-          return res.status(400).json({message : {bookDataValidationMessage}})
+          removeFile(fileName)
+          return res.status(400).json({message : bookDataValidationMessage})
         }
          /**Reformatage de l'image */
         const formatedImageName = await formatImage(imagePath, fileName);
@@ -65,8 +65,8 @@ exports.updateBook = async (req, res) => {
       }else{
         bookObject = req.body;
         const bookDataValidationMessage = bookDataValidation(bookObject);
-        if(bookDataValidationMessage !== null){
-          return res.status(400).json({message : {bookDataValidationMessage}})
+        if(bookDataValidationMessage){
+          return res.status(400).json({message : bookDataValidationMessage})
         }
       }
       Book.updateOne({_id:req.params.id}, {... bookObject, _id:req.params.id})
@@ -106,7 +106,7 @@ exports.rateBook = (req, res) => {
       const rating = req.body.rating;
       const bookRatingValidationMessage = bookRatingValidation(rating);
       if(bookRatingValidationMessage){
-        return res.status(400).json({message : {bookRatingValidationMessage}})
+        return res.status(400).json({message : bookRatingValidationMessage})
       }
       const newRating = {
           userId : req.auth.userId,
