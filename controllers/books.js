@@ -5,23 +5,22 @@ const path = require('path')
 const fs = require('fs')
 
 exports.addBook = async (req, res) => {
-  Book.deleteOne({_id : '6876ced83d6dbca05fcd2470'}).then (async () =>{
-if(!req.body.book || !req.file){
+  if(!req.body.book || !req.file){
     return res.status(400).json({message : 'Livre et image obligatoires'});
   }
   const bookObject = JSON.parse(req.body.book);
-  const fileName = req.file.filename;
-  const imagePath = req.file.path;
   /**Vérification des champs de la requête*/
+  const fileName = req.file.filename;
   const bookDataValidationMessage = bookDataValidation(bookObject);
   if (bookDataValidationMessage){
     removeFile(fileName);
     return res.status(400).json({message : bookDataValidationMessage});
   }
   /**Reformatage de l'image */
+  const imagePath = req.file.path;
   const formatedImageName = await formatImage(imagePath, fileName);
   if(formatedImageName === null){
-    return res.status(500).json({message : `Sharp n'a pas réusii à formater l'image`});
+    return res.status(500).json({message : `Sharp n'a pas réussi à formater l'image`});
   }
   removeFile(fileName);
   /**Enregistrement du livre */
@@ -35,40 +34,47 @@ if(!req.body.book || !req.file){
   book.save()
   .then(()=>{res.status(201).json({message:'Livre enregistré'})})
   .catch((error) => {res.status(400).json({error})});
-  })
 }
 
 exports.updateBook = async (req, res) => {
   Book.findOne({_id : req.params.id})
   .then (async (book) => { 
+    /**Contrôle de l'autorisation*/
     if (book.userId !== req.auth.userId){
       res.status(401).json({message : 'Non autorisé'})
     } else {
-      const previousImageName = book.imageUrl.split('/images/')[1];
+      
       let bookObject = null;
+      /** Requête avec une image dans file */
       if (req.file){
-        const fileName = req.file.filename;
-        const imagePath = req.file.path;
         bookObject = JSON.parse(req.body.book);
+        /**Contrôle des champs de la requête */
+         const fileName = req.file.filename;
         const bookDataValidationMessage = bookDataValidation(bookObject);
         if(bookDataValidationMessage){
           removeFile(fileName)
           return res.status(400).json({message : bookDataValidationMessage})
         }
          /**Reformatage de l'image */
+        const imagePath = req.file.path;
         const formatedImageName = await formatImage(imagePath, fileName);
         if(formatedImageName === null){
           return res.status(500).json({message :`Sharp n'a pas réussi à formater l'image`});
         }
         removeFile(fileName);
         bookObject.imageUrl= `${req.protocol}://${req.get(`host`)}/images/${formatedImageName}`;
-      }else{
+      }
+      /**Requête sans image*/
+      else{
         bookObject = req.body;
+        /**Contrôle des champs de la requête */
         const bookDataValidationMessage = bookDataValidation(bookObject);
         if(bookDataValidationMessage){
           return res.status(400).json({message : bookDataValidationMessage})
         }
       }
+      /**Mise à jour du livre */
+      const previousImageName = book.imageUrl.split('/images/')[1];
       Book.updateOne({_id:req.params.id}, {... bookObject, _id:req.params.id})
       .then(()=>{ 
         if(req.file){removeFile(previousImageName)};
@@ -82,9 +88,11 @@ exports.updateBook = async (req, res) => {
 exports.deleteBook = (req, res) => {
   Book.findOne({_id : req.params.id})
   .then((book) => {
+    /**Contrôle de l'autorisation */
     if (book.userId != req.auth.userId){
       res.status(401).json({message : 'Non autorisé'})
     } else {
+      /**Supression de l'image dans le dossier 'image" et du livre dans la BDD */
       const filename = book.imageUrl.split ('/images/')[1];
       fs.unlink(`images/${filename}`, () => {
         Book.deleteOne({_id:req.params.id})
@@ -99,15 +107,18 @@ exports.deleteBook = (req, res) => {
 exports.rateBook = (req, res) => {
   Book.findOne({_id:req.params.id})
   .then ((book) => {
+    /**Vérification si déjà noté */
     const isRating = book.ratings.find((rating)=>rating.userId === req.auth.userId);
     if (isRating){
       res.status(401).json({message : 'Vous avez déjà noté ce livre'});
     }else{
       const rating = req.body.rating;
+      /**Contrôle sur le champs rating de la requête */
       const bookRatingValidationMessage = bookRatingValidation(rating);
       if(bookRatingValidationMessage){
         return res.status(400).json({message : bookRatingValidationMessage})
       }
+      /**Ajout d'un rating  au livre*/
       const newRating = {
           userId : req.auth.userId,
           grade : parseInt(rating, 10)
@@ -118,6 +129,7 @@ exports.rateBook = (req, res) => {
       book.ratings.forEach ((rating)=>{sum += rating.grade});
       const average = Math.round (sum/(book.ratings.length));
       book.averageRating = average;
+      /** Sauvegarde du livre mis à jour*/
       book.save()
       .then((book) => {res.status(200).json(book)})
       .catch(error => res.status(500).json({error}));

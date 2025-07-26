@@ -3,8 +3,8 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
-  exports.signUp = (req, res, next)=>{
-  bcrypt.hash(req.body.password, process.env.ROUNDS)
+  exports.signUp = (req, res)=>{
+  bcrypt.hash(req.body.password, process.env.SALT)
   .then ((hash) =>{
     const user = new User({
       email : req.body.email,
@@ -17,7 +17,7 @@ require('dotenv').config()
   .catch ((error) => {res.status(500).json({error})});
 }
 
-exports.logIn = (req, res, next)=>{
+exports.logIn = (req, res)=>{
   User.findOne({email : req.body.email})
   .then ((user) =>{
     if (user === null){
@@ -38,12 +38,8 @@ exports.logIn = (req, res, next)=>{
           })
         }
       })
-      .catch(error =>{
-        res.status(500).json({error})
-      });
+      .catch((error) =>{res.status(500).json({error}) });
     }
   })
-  .catch(error =>{
-    res.status(500).json({error})
-  });
+  .catch((error)=>{res.status(500).json({error})});
 }
