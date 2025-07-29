@@ -1,10 +1,11 @@
 const User = require('../models/User.js')
 const bcrypt = require('bcrypt')
+const e = require('express')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
   exports.signUp = (req, res)=>{
-  bcrypt.hash(req.body.password, process.env.SALT)
+  bcrypt.hash(req.body.password, parseInt(process.env.SALT))
   .then ((hash) =>{
     const user = new User({
       email : req.body.email,
@@ -14,7 +15,9 @@ require('dotenv').config()
     .then(()=>{res.status(201).json({message:'Utilisateur créé'})})
     .catch((error) => {res.status(400).json({error})});
   })
-  .catch ((error) => {res.status(500).json({error})});
+  .catch ((error) => {
+    console.log('Le compte n\'a pas été créée');
+    res.status(500).json({error})});
 }
 
 exports.logIn = (req, res)=>{
