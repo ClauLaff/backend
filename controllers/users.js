@@ -1,14 +1,23 @@
 const User = require('../models/User.js')
 const bcrypt = require('bcrypt')
-const e = require('express')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
-  exports.signUp = (req, res)=>{
-  bcrypt.hash(req.body.password, parseInt(process.env.SALT))
+exports.signUp = (req, res)=>{
+  const email = req.body.email;
+  const emailValidationMessage = emailValidation(email);
+  if (emailValidationMessage){
+    return res.status(400).json({ message : emailValidationMessage});
+  }
+  const password = req.body.password;
+  const passwordValidationMessage = passwordValidation(password);
+  if (passwordValidationMessage){
+    return res.status(400).json({message : passwordValidationMessage})
+  }
+  bcrypt.hash(password, parseInt(process.env.SALT))
   .then ((hash) =>{
     const user = new User({
-      email : req.body.email,
+      email : email,
       password : hash
     });
     user.save()
@@ -45,4 +54,22 @@ exports.logIn = (req, res)=>{
     }
   })
   .catch((error)=>{res.status(500).json({error})});
+}
+
+function emailValidation(email){
+  if(!email || email.length>254){
+    return "Email obligatoire et ne pas dépasser 254 caractères"
+  }
+  const regex = /^[\w.-]+@[\w.-]+\.+[a-zA-Z]{2,}$/;
+  const valid = regex.test(email);
+  if (!valid){
+    return "Format d'email invalide";
+  }
+  return null
+}
+function passwordValidation(password){
+  if(!password || password.length<8 || password.length>20){
+    return "Mot de passe obligatoire et compris entre 8 et 20 caractères"
+  }
+  return null
 }
